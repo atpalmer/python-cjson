@@ -1,11 +1,16 @@
 #include <Python.h>
 
+PyDoc_STRVAR(dumps__doc__, "Accepts obj and return JSON-formatted str");
 static PyObject *cjson_dumps(PyObject *self, PyObject *args, PyObject *kwargs) {
+    PyObject *obj;
+    char *kwlist[] = {"obj", NULL};
+    if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &obj))
+        return NULL;
     return NULL;
 }
 
 static PyMethodDef module_methods[] = {
-    {"dumps", cjson_dumps, METH_VARARGS | METH_KEYWORDS},
+    {"dumps", cjson_dumps, METH_VARARGS | METH_KEYWORDS, dumps__doc__},
     {0},
 };
 
