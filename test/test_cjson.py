@@ -1,6 +1,8 @@
+import json
 import cjson
 
 
 def test_cjson():
-    cjson.dumps('hello')
+    obj = 'hello'
+    assert cjson.dumps(obj) == json.dumps(obj)
 
