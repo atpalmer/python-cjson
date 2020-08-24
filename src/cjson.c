@@ -6,6 +6,8 @@ static PyObject *cjson_dumps(PyObject *self, PyObject *args, PyObject *kwargs) {
     char *kwlist[] = {"obj", NULL};
     if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O", kwlist, &obj))
         return NULL;
+
+    PyErr_Format(PyExc_NotImplementedError, "Not implmented for type %s", Py_TYPE(obj)->tp_name);
     return NULL;
 }
 
