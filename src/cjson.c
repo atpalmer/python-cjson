@@ -1,32 +1,58 @@
 #include <Python.h>
 
+struct string_builder {
+    Py_ssize_t alloc;
+    char *curr;
+    char value[];
+};
+
+static struct string_builder *string_builder_new(Py_ssize_t size) {
+    struct string_builder *new = PyMem_Malloc(sizeof(struct string_builder) + size);
+    new->alloc = size;
+    new->curr = new->value;
+    return new;
+}
+
+static struct string_builder *string_builder_realloc(struct string_builder *self, Py_ssize_t size) {
+    Py_ssize_t currsize = self->curr - self->value;
+    Py_ssize_t newalloc = self->alloc;
+    while(newalloc < currsize + size)
+        newalloc *= 2;
+    if(newalloc == self->alloc)
+        return self;
+    self = PyMem_Realloc(self, sizeof(struct string_builder) + newalloc);
+    self->alloc = newalloc;
+    self->curr = self->value + currsize;
+    return self;
+}
+
+static struct string_builder *string_builder_append_char(struct string_builder *self, int c) {
+    self = string_builder_realloc(self, 1);
+    *self->curr++ = c;
+    return self;
+}
+
+static PyObject *string_builder_complete(struct string_builder *self) {
+    self = string_builder_append_char(self, '\0');
+    PyObject *result = PyUnicode_FromString(self->value);
+    PyMem_Free(self);
+    return result;
+}
+
 static PyObject *_cjson_str_dumps(PyObject *str) {
     static const char *ESCAPE_CHARS = "\"\\";
     const char *contents = PyUnicode_AsUTF8(str);
-
-    Py_ssize_t rsize = Py_SIZE(str) * 2;
-    char *result = PyMem_Malloc(rsize);
-
     const char *c = contents;
-    char *r = result;
 
-    *r++ = '"';
+    struct string_builder *result = string_builder_new(Py_SIZE(str) * 2);
+    result = string_builder_append_char(result, '"');
     while(*c) {
-        size_t pos = r - result;
-        if(r - result > rsize) {
-            rsize *= 2;
-            result = PyMem_Realloc(result, rsize);
-            r = result + pos;
-        }
         if(strchr(ESCAPE_CHARS, *c))
-            *r++ = '\\';
-        *r++ = *c++;
+            result = string_builder_append_char(result, '\\');
+        result = string_builder_append_char(result, *c++);
     }
-    *r++ = '"';
-
-    PyObject *result_ob = PyUnicode_FromString(result);
-    PyMem_Free(result);
-    return result_ob;
+    result = string_builder_append_char(result, '"');
+    return string_builder_complete(result);
 }
 
 PyDoc_STRVAR(dumps__doc__, "Accepts obj and return JSON-formatted str");
