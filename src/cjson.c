@@ -59,6 +59,10 @@ static PyObject *_cjson_int_dumps(PyObject *obj) {
     return PyObject_Str(obj);
 }
 
+static PyObject *_cjson_float_dumps(PyObject *obj) {
+    return PyObject_Str(obj);
+}
+
 PyDoc_STRVAR(dumps__doc__, "Accepts obj and return JSON-formatted str");
 static PyObject *cjson_dumps(PyObject *self, PyObject *args, PyObject *kwargs) {
     PyObject *obj;
@@ -70,6 +74,8 @@ static PyObject *cjson_dumps(PyObject *self, PyObject *args, PyObject *kwargs) {
         return _cjson_str_dumps(obj);
     if(PyLong_CheckExact(obj))
         return _cjson_int_dumps(obj);
+    if(PyFloat_CheckExact(obj))
+        return _cjson_float_dumps(obj);
 
     PyErr_Format(PyExc_NotImplementedError, "Not implmented for type %s", Py_TYPE(obj)->tp_name);
     return NULL;

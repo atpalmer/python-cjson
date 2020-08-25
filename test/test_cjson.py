@@ -11,3 +11,9 @@ def test_cjson_int():
     obj = 1
     assert cjson.dumps(obj) == json.dumps(obj)
 
+
+def test_cjson_float():
+    obj = 1.0
+    assert cjson.dumps(obj) == json.dumps(obj)
+
+
